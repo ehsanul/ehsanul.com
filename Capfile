@@ -9,7 +9,7 @@ set :repository,  "git@github.com:ehsanul/ehsanul.com.git"
 set :deploy_to, "/home/ehsanul/ehsanul.com" 
 set :deploy_via, :remote_cache
 set :scm, 'git'
-set :branch, 'deploy'
+set :branch, 'master'
 set :git_shallow_clone, 1
 set :scm_verbose, true
 set :use_sudo, false

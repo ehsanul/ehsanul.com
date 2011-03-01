@@ -5,7 +5,7 @@ set :domain, 'ehsanul.com'
 
 default_run_options[:pty] = true
 
-set :repository,  "ehsanul@ehsanul.com:git/ehsanul.com.git" 
+set :repository,  "git@github.com:ehsanul/ehsanul.com.git" 
 set :deploy_to, "/home/ehsanul/ehsanul.com" 
 set :deploy_via, :remote_cache
 set :scm, 'git'

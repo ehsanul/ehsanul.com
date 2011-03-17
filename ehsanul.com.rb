@@ -12,12 +12,13 @@ ARTICLES = Dir["articles/*.md"].map do |file|
   io.close
   meta = YAML::load(meta)
   body = RDiscount.new(body).to_html
+  puts body
   path = "/" + file.split("/").last.sub(/\.[^\.]+$/, '')
   # The summary is either explicitly specified
   # or the first two paragraphs of the article.
   summary = ("<p>#{meta[:summary]}</p>" if meta[:summary]) ||
             # yeah, yeah, you can't *really* parse html with regexes, i know
-            body.scan(/(<p>(?:[^<]|<\/?[^p>]*>)*<\/p>)/im)[0..1].join
+            body.scan(/(<p>(?:[^<]|<\/?[^p][^>]*>)*<\/p>)/im)[0..1].join
   Article.new(meta, body, path, summary)
 end.sort do |a, b|
   b.meta[:date] <=> a.meta[:date] # descending dates

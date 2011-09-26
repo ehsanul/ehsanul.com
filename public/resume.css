@@ -1,0 +1,102 @@
+body {
+  color: #111;
+}
+body > * {
+  width: 700px;
+  margin: 30px auto;
+}
+
+
+header {
+  display: table; /* clearfix alternative */
+  padding-top: 10px;
+}
+h1, h2 { 
+  font-variant: small-caps;
+  letter-spacing: 2px;
+}
+h1 {
+  float: left;
+  font-size: 50px;
+}
+h1 a { color: #666; }
+address {
+  margin-top: 15px;
+  text-align: right;
+  float: right;
+}
+
+
+section { font-size: 18px }
+section h2 {
+  font-size: 24px;
+  color: #f46e2b;
+  margin-bottom: 10px;
+}
+section a {
+  color: #111;
+  text-decoration: underline;
+}
+section a.detail-inactive {
+  text-decoration: none;
+  border-bottom: 1px dashed #555;
+}
+section a.detail-active {
+  padding-left: 5px;
+  margin-left: 5px;
+  margin-right: 5px;
+  border-left: 5px solid #ddd;
+  border-bottom: none;
+}
+
+
+table { margin-top: -10px; }
+td, th { 
+  padding: 15px 10px 0 10px;
+}
+th {
+  text-align: right;
+  font-size: 20px;
+  font-style: italic;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+
+
+ul.bulleted {
+  margin-top: 10px;
+  font-size: 17px;
+  padding-left: 25px;
+  list-style-type: disc;
+}
+ul.bulleted li { margin-top: 5px; }
+
+
+div.detail {
+  border-left: 5px solid #ddd;
+  margin-top: 10px;
+  margin-bottom: 15px;
+  padding-left: 15px;
+}
+div.detail p{
+  color: #555;
+  position: relative;
+  margin-bottom: 10px;
+}
+
+
+#profile {
+  font-size: 20px;
+}
+
+
+@media screen and (max-width: 800px) { body > * { width: 600px; } }
+@media screen and (max-width: 700px) {
+  body > * { width: 500px; }
+  h1 { font-size: 40px; }
+}
+@media screen and (max-width: 600px) {
+  body > * { width: 450px; }
+  h1, address { float: none; width: 100%; text-align: center; }
+  address { margin-top: 0px; }
+}

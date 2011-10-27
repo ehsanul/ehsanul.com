@@ -1,0 +1,65 @@
+EHSANUL HOQUE
+
+ehsanul@ehsanul.com
+(347) 679 9621
+
+
+PROFILE
+
+I'm a web developer and generalist, with a passion for startups. I'm quick to
+learn and my skills range from game programming to query optimization.
+
+
+PROJECTS
+
+Jellly
+  Suggests relevant links as you browse the web, via bookmarklet/add-on
+  Works by automatically extracting keywords to search for related content
+  Website: http://jellly.com/
+  • Sole technical co-founder
+  • Integrated Java machine learning tools (via JRuby/Sinatra) with client-side
+    unsupervised keyword extraction algorithms for superior keywords
+  • Tuned scoring algorithms for ranking the results from various sources
+
+Xarkon
+  Real-time, physics-based MMO game built with Node.js
+  Play the original JS prototype on Chrome: http://xarkon.com/spaceball.html
+  • Wrote a components library for non-hierarchical code-sharing
+  • Custom game engine, written in CoffeeScript
+
+
+EXPERIENCE
+
+  Lead Developer and DBA at Vebsite (2010 – 2011)
+    • Data processing on the order of a billion records with Ruby
+    • Managed several PostgreSQL database servers
+    • Miscellaneous PHP programming and Linux server administration
+
+
+TECHNICAL SKILLS
+
+  Programming   Proficient in Ruby and JavaScript
+                Experienced with Python, PHP, Scheme and Bash scripting
+       Markup   LaTeX, HTML, XHTML, CSS, MarkDown
+    Databases   PostgreSQL, MongoDB, MySQL
+    Sys Admin   3 year's experience remotely managing Linux servers
+                Comfortable with command-line tools and server troubleshooting
+
+
+SOCIETIES AND AWARDS
+
+  • Albert Dorman Honors College
+  • International Student Presidential Scholarship at NJIT
+  • Two national awards from Cambridge University for the highest marks obtained
+    in both Mathematics and Economics in Saudi Arabia in the A-Levels Final Exam
+
+
+EDUCATION
+
+   May 2010   Bachelor of Science in Mechanical Engineering
+                New Jersey Institute of Technology, Newark, New Jersey
+                GPA: 3.71
+  June 2006   Advanced Level General Certificate of Education (A-Levels)
+                Examination Board: Cambridge International Examinations
+                Subjects: Mathematics, Physics, Economics, Accounting
+                Grades: A in each subject

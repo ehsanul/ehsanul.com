@@ -55,3 +55,7 @@ get '/' do erb :home end
 [:about, :projects].each do |route|
   get "/#{route}" do erb route end
 end
+
+get "/resume" do
+  erb :resume, :layout => false
+end

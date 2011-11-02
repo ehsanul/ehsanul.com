@@ -138,15 +138,15 @@ link and icons. In addition, please leave this entire comment intact.
         </td>
       </tr>
 
-      <tr><th>Xarkon</th>
+      <tr><th><a href='http://xarkon.com/'>Xarkon</a></th>
         <td>
 
           <ul><li>
             Real-time, physics-based MMO game built with Node.js.
-          </li><li>
-            Play the original JS prototype on Chrome:
-            <a href="http://xarkon.com/spaceball.html"><span class="nowrap">Xarkon Spaceball</span></a>
-          </li></ul>
+          </li><!--li>
+            Play the prototype on Chrome/Firefox/IE/Safari:
+            <a href="http://xarkon.com/"><span class="nowrap">Xarkon Spaceball</span></a>
+          </li--></ul>
 
           <ul class="bulleted"><li>
             Wrote a <a href="#component">components library</a> for non-hierarchical code-sharing
@@ -353,7 +353,7 @@ link and icons. In addition, please leave this entire comment intact.
         ago. I had begun learning Rails then, but ended up far more interested in
         the language itself.
       </p><p>
-        Now whenever I need to write some little command-line utility, I reach
+        Now whenever I need to write some command-line utility, I reach
         for Ruby. And when I need to write a web service, I turn to Sinatra. Ruby
         is basically my favorite language for general scripting and web
         development.
@@ -406,7 +406,7 @@ link and icons. In addition, please leave this entire comment intact.
     <div class="detail" id="html5">
       <p>
         HTML5 is the new buzzword, and has become an umbrella term for everything
-        new on the client-side web. This is a pet-peeve of mine, since of course
+        new on the client-side web. This is a pet peeve of mine, since of course
         HTML5 actually refers to a much more limited specification, basically
         a <a href="http://www.w3.org/TR/html5-diff/">modified and extended HTML4</a>.
       </p><p>
@@ -522,36 +522,36 @@ link and icons. In addition, please leave this entire comment intact.
       </p><p>
         I wrote a Ruby script that parsed each file and determined what each
         column represented (since each file had a different format), and then
-        normalized the format. Each column's data was also strictly validated and
-        normalized, while records with any bad data went to separate files for
-        later investigation and cleanup.
+        normalized the format. Each column's data was also strictly validated
+        and normalized, while records with any bad data went to separate files
+        for later investigation and cleanup.
       </p><p>
         Finally, the script partitioned output into 26 files according to the
-        first letter of the first column (first name). This was done to make the
-        subsequent sorting phase faster. Sorting was required for fast
+        first letter of the first column (first name). This was done to make
+        the subsequent sorting phase faster. Sorting was required for fast
         deduplication (the next step), and was done by simply using GNU
         <code>sort</code>, with options appropriately set in order to handle
         large files gracefully.
       </p><p>
-        Next was deduplication of records, which I did with another Ruby script.
-        If all columns were always present, and always had consistent data
-        between duplicate records, I could just run <code>uniq</code> over the
-        files and call it a day. However, duplicates were not so simple to
+        Next was deduplication of records, which I did with another Ruby
+        script. If all columns were always present, and always had consistent
+        data between duplicate records, I could just run <code>uniq</code> over
+        the files and call it a day. However, duplicates were not so simple to
         detect, given the lack of a trusted primary key and inconsistent data.
       </p><p>
-        For example, consider detecting duplicate people using name and address
-        together. Addresses are often written in several different ways and
-        require some sort of fuzzy matching to catch most duplicates. I ended up
-        using an empirical threshold score for levenshtein distances on street
-        addresses, combined with bonuses and penalties for matching
-        city/zip/state. Also, people often change address, so other unique
-        combination of fields were identified by analyzing the data, leading to
-        better deduplication.
+        For example, consider detecting duplicate people using names and
+        addresses together. Addresses are often written in several different
+        ways and require some sort of fuzzy matching to catch most duplicates.
+        I ended up using an empirically determined threshold score for
+        levenshtein distances betweens street addresses, combined with bonuses
+        and penalties for matching city/zip/state. Also, people often change
+        address, so other unique combination of fields were identified by
+        analyzing the data, leading to better deduplication.
       </p><p>
-        Also note that the sorting done before made sure all duplicates were very
-        near to each other in terms of which lines they appeared on (since the
-        columns most relevant to deduplication were first), but not always right
-        beside each other. This had to be dealt with by my script.
+        Also note that the sorting done before made sure all duplicates were
+        very near to each other in terms of which lines they appeared on (since
+        the columns most relevant to deduplication were first), but not always
+        right beside each other. This had to be dealt with by my script.
       </p><p>
         Duplicate records were combined, accumulating multiple addresses and
         phone numbers, while keeping track of how recent each was, as well as

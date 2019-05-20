@@ -1,49 +1,51 @@
 EHSANUL HOQUE
 
 ehsanul@ehsanul.com
-(347) 679 9621
+(415) 494-1172
 
 
-PROFILE
+TECHNICAL SKILLS/TECHNOLOGIES
 
-I'm a web developer and generalist, with a passion for startups. I'm quick to
-learn and my skills range from game programming to query optimization.
-
-
-PROJECTS
-
-Jellly
-  Suggests relevant links as you browse the web, via bookmarklet/add-on
-  Works by automatically extracting keywords to search for related content
-  Website: http://jellly.com/
-  • Sole technical co-founder
-  • Integrated Java machine learning tools (via JRuby/Sinatra) with client-side
-    unsupervised keyword extraction algorithms for superior keywords
-  • Tuned scoring algorithms for ranking the results from various sources
-
-Xarkon
-  Real-time, physics-based MMO game built with Node.js
-  Play the original JS prototype on Chrome: http://xarkon.com/spaceball.html
-  • Wrote a components library for non-hierarchical code-sharing
-  • Custom game engine, written in CoffeeScript
-
+  Programming   Proficient in Ruby, JavaScript/TypeScript and Rust
+                Familiar with Python, PHP, Perl and Bash scripting
+   Frameworks   Rails, Angular, AngularJS, React
+    Databases   PostgreSQL, MongoDB, MySQL, ElasticSearch
+       DevOps   AWS, Terraform, Jenkins
+                Comfortable with server troubleshooting
 
 EXPERIENCE
+  Tech Lead at MyTime (2015 – 2018)
+    • Mentored many other developers and interns
+    • Lead scoping and estimations for major projects
+    • Built foundational data layer for MyTime's core single page application
+      in AngularJS, encompassing all major merchant-facing functionality
+    • Architected and implemented MyTime's merchant-facing scheduling solution
+    • Architected and implemented MyTime's Point of Sale solution
+    • Architected data ingestion system for Enterprise-level data integrations
+    • Optimized CPU-intensive availability calculation routine by moving the
+      hot loop into a Ruby extension written in Rust, achieving a 25x speedup
 
-  Lead Developer and DBA at Vebsite (2010 – 2011)
+  Software Engineer at MyTime (2011 – 2015)
+    • Modeled schema for core domain objects, such as services, staff,
+      pricing, availability, etc.
+    • Implemented e-commerce flow, including payment integrations.
+    • Built MyTime's marketplace search, featuring geographic searches,
+      clustering, facets and advanced filtering/sorting options. Optimized to
+      produce search results in under 50ms for 2 million businesses.
+
+  Developer and DBA at Vebsite (2010 – 2011)
     • Data processing on the order of a billion records with Ruby
     • Managed several PostgreSQL database servers
     • Miscellaneous PHP programming and Linux server administration
 
+PROJECTS
 
-TECHNICAL SKILLS
-
-  Programming   Proficient in Ruby and JavaScript
-                Experienced with Python, PHP, Scheme and Bash scripting
-       Markup   LaTeX, HTML, XHTML, CSS, MarkDown
-    Databases   PostgreSQL, MongoDB, MySQL
-    Sys Admin   3 year's experience remotely managing Linux servers
-                Comfortable with command-line tools and server troubleshooting
+  brick
+    Bot for the multiplayer, physics-based game, Rocket League.
+    • Reverse-engineered the game engine's physics calculations for car movement
+    • Implemented Hybrid-A* Planning
+    • Built initial bindings for Rust before official support. Now major
+      contributor to the official rlbot-rust bindings
 
 
 SOCIETIES AND AWARDS

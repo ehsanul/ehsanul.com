@@ -76,4 +76,14 @@ accomplish our goal?
 
 ## You Can Turn Anything Into A Graph
 
+Rocket League's phsyics update at 120fps, and thus player inputs are also
+sampled at 120fps. Therefore, you could imagine that players are making 120
+decisions per second and providing an appropriate input at each point. The
+discrete steps could be made coarser, as needed for practicality, but we still
+end up with a long string of decisions, which result in a string of moves that
+hopefully cause a goal to be scored.
 
+This looks awfully like a tree. At each branching point, there are a set of
+different inputs that could be provided to the car. This tree reaches all
+possible states the car could reach, and thus finding a solution can be thought
+of as just a tree search.

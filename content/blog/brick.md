@@ -211,3 +211,144 @@ greatly help here!
 
 ## Heuristic function
 
+The heuristic function can be make or break for the A\* algorithm, hybrid or
+otherwise. While it's always possible to find examples of graphs where even
+a perfect heuristic gets the same performance as with Djikstra's algorithm, for
+typical graphs a good heuristic can improve performance by multiple orders of
+magnitude, by expanding far fewer nodes of the tree.
+
+The only requirement for a heuristic for A\* search is that the it be
+(admissibl)[https://en.wikipedia.org/wiki/Admissible_heuristic]. That means
+it can undestimate the cost, but should never overetimate it. However, the
+closer we can get to the actual cost, the better the heuristic is at
+eliminating tree expansions. So our target heuristic is one which gives an
+answer that is as close to the actual cost as possible, but not over.
+
+Designing a good heuristic function for Rocket League is actually quite
+challenging. One reason for this is that cars, in Rocket League and in general,
+have (nonholonomic)[https://en.wikipedia.org/wiki/Nonholonomic_system]
+constraints on their movement. This is just a fancy way of
+saying that steering a car to make it move left or right is not independent of
+its forwards or backwards movement. A car with omnidirectional wheels (ie
+wheels that can go directly sideways, like the (Mecanum
+wheel)[https://en.wikipedia.org/wiki/Mecanum_wheel]) would be holonomic in
+constrast.
+
+Holonomic constraints are much more commonly used for path search, and thus
+often a simple distance metric can be used with some success. That is not the
+case with nonholonomic systems, but let's go ahead and use euclidean distance
+as a heuristic and see how it does.
+
+Here is a visualization of all node expansions for a few different cases which
+we will use as benchmark cases. The blue cuboid is a the car, and the sphere is
+the ball. Each short while line is a state that was simulated while conducting
+the hybrid A\* path search, and the blue line is the final solution. Note that
+these tests have been done with a branching factor of six, which allows for basic
+ground driving (left, right, forward) with optional boost.
+
+With case 1, the car is facing forwards towards ball and goal, but offset in the x-axis.
+We find (TODO) states have been simulated in TODO seconds.
+
+    TODO: distance1 - forward offset
+
+Case 2 has the car facing away from the goal, and in between the ball and goal.
+It has to go the long way around, but our distance-based heuristic is not smart
+enough to understand this and wastes a lot of time exploring the wrong side of
+the ball. This results in (TODO) states simulated in TODO seconds.
+
+    TODO: distance2 - backwards offset
+
+Case 3 is another challenging one, requiring a long roundabout turn to shoot
+the ball into the goal, and ends up simulating TODO states, taking TODO
+seconds.
+
+    TODO: distance3 - beside ball, turn requires large circle turn
+
+This abysmal performance show clearly that a simple distance-based heuristic is
+not sufficient, especially in more challenging cases. One reason for that is
+that a car cannot go directly sideways. This results in the heuristic thinking
+we are very close to reaching our  goal, when in fact the car cannot turn so
+tightly.
+
+Some have used (Reeds-Shepp
+curves)[https://gieseanw.wordpress.com/2012/11/15/reeds-shepp-cars/] in order
+to get a better heuristic. This is a fast way to find a lower bound for
+distance.
+
+While this is likely to work better than distance for ground driving, Rocket
+League's car driving physics are more complicated than the simple models used
+for Reeds-Shepp curves. For example, it is possible to drift, at the expense of
+velocity, and the car's turning radius in Rocket League is dependent on its
+velocity. Furthermore, turning reduces a cars velocity.
+
+More importantly, these curves only cover basic ground driving. It will not
+handle jumping, aerials (flying through the air with boost), transitioning from
+the ground to the wall, and various other moves we may want to accomodate in
+the general case.
+
+I briefly attempted using a simple 2-layer neural network as a heuristic
+function. Neural networks are known as universal function simulators, so it
+seemed possible to make it work. The training and test sets were generated
+using optimal paths found by the algorithm with the euclidean distance
+heuristic. Thus, for each found path, we know the start state of the car and
+what the actual cost is.
+
+Unfortunately, the results of this were mixed and I have lost them now. I'm
+sure there is a way to make it work, eg I probably should have used polar
+coordinates instead of euclidean ones as inputs to the neural network. But
+I moved on as the data gathering process gave me a better idea.
+
+You see, I now had a generated data set with car starting states in a grid
+across the entire field, and with different car orientations and velocities as
+well. And actual costs for each state. I realized I could directly use this
+data instead of trying to compress it into a network! I just had to interpolate
+it based on how close my actual car state is to one of the states with
+a pre-computed cost.
+
+This is a classic (read: old and outdated) machine learning technique known as
+the [k-nearest neighbors] algorithm. A kd-tree is used to efficiently find car
+states in the data set that are similar to a given one, eg one from the game.
+Then an average of the costs of nearby states, weight by how close they are to
+the given state, can be used as a very accurate cost.
+
+kNN heuristic, case 1: TODO states, TODOs runtime
+
+    TODO case1 knn
+
+kNN heuristic, case 2: TODO states, TODOs runtime
+
+    TODO case2 knn
+
+kNN heuristic, case 3: TODO states, TODOs runtime
+
+    TODO case3 knn
+
+That's a TODOx improvement! Note that this averaging of actual costs will not
+result in an admissible heuristic. But admissibility is really only a hard
+requirement for optimality, which we have already given up through all the
+discretization we did earlier in the process. If we're willing to give up more
+optimality for performance, we can even scale the cost from the heuristic
+function! With a very accurate heuristic function such as the one we have, we
+still get a reasonable result.
+
+Here's the result of a TODO scaling factor on the kNN heuristic:
+
+Scaled kNN heuristic, case 1: TODO states, TODOs runtime
+
+    TODO case1 knn scaling
+
+Scaled kNN heuristic, case 2: TODO states, TODOs runtime
+
+    TODO case2 knn scaling
+
+Scaled kNN heuristic, case 3: TODO states, TODOs runtime
+
+    TODO case3 knn scaling
+
+While we find some less optimal paths this way, the runtime is much better and
+may be worth it. Also note that the solutions are all very similar to the
+globally optimal solution. That indicates that there should be a way to create
+a set of optimization passes that starts with the crude solution from a scaled
+heuristic and brings it closer to an optimal one, smoothing over some of
+the discretizations made while doing so. That's a future enhanced I'm
+interesting in pursuing.

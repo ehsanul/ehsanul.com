@@ -31,64 +31,67 @@ date = 2021-01-03
 For the last few years, I've been obsessed with Rocket League, a physics-based
 game where rocket-powered cars play soccer. Being physics-based means that this
 game has an immensely high skill ceiling, not unlike sports in the physical
-world: there is no such thing as auto-aim in this game.
+world: there is no such thing as auto-aim.
 
 The interaction between players and the game physics allows for amazing plays:
 
     TODO: gif
 
-Or absolutely terrible plays, if you're more like the average player:
+Or positively terrible plays, if you're more like the average player:
 
     TODO: gif
 
 Given the difficulty of the game, the built-in AI isn't very good. Most
-players can surpass it within weeks of playing, and must turn to playing against
-other humans online for more of a challenge. I've always wondered how one might
-build a better bot for Rocket League.
+players can surpass it within a few weeks of playing and must turn to online
+matches against other humans for an actual challenge.
 
-So when I discovered [RLBot](https://rlbot.org/), a framework and community
-dedicated to making bots for Rocket League, I was thrilled! Finally, an
+I've always wondered how one might build a better bot for Rocket League. So
+when I discovered [RLBot](https://rlbot.org/), a framework and community
+dedicated to making bots for Rocket League, I was thrilled. Finally, an
 interesting side project!
 
 ## The Goal
 
 Playing Rocket League well is a high bar. It involves predicting the motion of
 the ball and other players, planning your moves and executing them,
-positioning, strategizing and more. Rather than attempt to meet that high bar,
-for now I'll settle for a much more modest achievement: scoring a goal. More
-specifically, I would like to be able to hit the ball into the goal, regardless
-of the starting state of the car or ball.
+positioning, strategizing, and more. Rather than attempt to meet that high bar,
+for now, I'll settle for a much more modest achievement: scoring a goal. More
+specifically, I would like to build a bot that can hit the ball towards the
+net, regardless of the ball or car's starting state.
 
-Solving this for certain positions does seem quite trivial. For example, if the
-car is facing the ball and the ball is between the car and the goal already,
-the car may just need to make a slight turn before driving straight at the ball.
+Solving this for certain starting states does seem relatively trivial. For
+example, if the car is facing the ball and the ball is between the car and the
+goal already, the car may just need to make a slight turn before driving
+straight at the ball.
+
+    TODO: gif ???
 
 But solving this in the general case is more challenging. Consider this case,
-where one is pointing away from the ball, and ball is soaring high up in the air:
+where the ball is soaring through the air while the car is initially facing the
+wrong way:
 
     TODO: gif
 
-Scoring in this case requires a complex string of maneuvers:
+Scoring in this situation requires a complex string of maneuvers:
 
 1. Left turn on the ground
 2. Driving straight up the wall
 3. Jumping off at the appropriate moment
 4. Flipping for additional horizontal velocity in the air
-5. Boosting for more height and speed, while angling the car for correct
+5. Boosting for more height and speed while angling the car for correct
    positioning
 
-And there are a variety of other situations requiring their own unique set of
-moves in order to efficiently hit the ball in the desired direction. But given
-an arbitrary scenario, where the car and ball may be anywhere on the field and
-going at any speed, how can we figure out the right set of moves that will
-accomplish our goal?
+Other situations require their own unique set of moves to hit the ball in the
+desired direction efficiently. But given an arbitrary scenario, where the car
+and ball may be anywhere on the field and going at any speed, how can we figure
+out the right set of moves that will accomplish our goal?
 
 ## You Can Turn Anything Into A Graph
 
 Rocket League's phsyics update at 120fps, and thus player inputs are also
 sampled at 120fps. Therefore, you could imagine that players are making 120
 decisions per second and providing an appropriate input at each point. The
-discrete steps could be made coarser, as needed for practicality, but we still
+discrete step. could be made coarser, as needed for practicality, but we still
 end up with a long string of decisions, which result in a string of car moves,and
 thus car states, that hopefully cause a goal to be scored.
 
@@ -296,20 +299,24 @@ what the actual cost is.
 Unfortunately, the results of this were mixed and I have lost them now. I'm
 sure there is a way to make it work, eg I probably should have used polar
 coordinates instead of euclidean ones as inputs to the neural network. But
-I moved on as the data gathering process gave me a better idea.
+I moved on: while gathering data for the neural network, I had better and much
+simpler idea.
 
 You see, I now had a generated data set with car starting states in a grid
 across the entire field, and with different car orientations and velocities as
-well. And actual costs for each state. I realized I could directly use this
-data instead of trying to compress it into a network! I just had to interpolate
-it based on how close my actual car state is to one of the states with
-a pre-computed cost.
+well. And actual costs for each state. It looked something like this:
 
-This is a classic (read: old and outdated) machine learning technique known as
-the [k-nearest neighbors] algorithm. A kd-tree is used to efficiently find car
-states in the data set that are similar to a given one, eg one from the game.
-Then an average of the costs of nearby states, weight by how close they are to
-the given state, can be used as a very accurate cost.
+    TODO: csv sample
+
+I realized I could directly use this data instead of trying to compress it into
+a network! I just had to interpolate it based on how close my actual car state
+is to one of the states with a pre-computed cost.
+
+This is a classic machine learning technique known as the [k-nearest neighbors]
+algorithm. A kd-tree is used to efficiently find car states in the data set
+that are similar to a given one, eg one from the game. Then an average of the
+costs of nearby states, weight by how close they are to the given state, can be
+used as a very accurate cost.
 
 kNN heuristic, case 1: TODO states, TODOs runtime
 
@@ -328,8 +335,8 @@ result in an admissible heuristic. But admissibility is really only a hard
 requirement for optimality, which we have already given up through all the
 discretization we did earlier in the process. If we're willing to give up more
 optimality for performance, we can even scale the cost from the heuristic
-function! With a very accurate heuristic function such as the one we have, we
-still get a reasonable result.
+function, which is clearly inadmissible! With a very accurate heuristic
+function such as the one we have, we still get a reasonable result.
 
 Here's the result of a TODO scaling factor on the kNN heuristic:
 
@@ -350,5 +357,5 @@ may be worth it. Also note that the solutions are all very similar to the
 globally optimal solution. That indicates that there should be a way to create
 a set of optimization passes that starts with the crude solution from a scaled
 heuristic and brings it closer to an optimal one, smoothing over some of
-the discretizations made while doing so. That's a future enhanced I'm
+the discretizations made while doing so. That's a future enhancement I'm
 interesting in pursuing.

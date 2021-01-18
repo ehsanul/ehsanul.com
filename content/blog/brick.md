@@ -88,39 +88,39 @@ out the right set of moves that will accomplish our goal?
 
 ## You Can Turn Anything Into A Graph
 
-Rocket League's phsyics update at 120fps, and thus player inputs are also
-sampled at 120fps. Therefore, you could imagine that players are making 120
-decisions per second and providing an appropriate input at each point. The
-discrete step. could be made coarser, as needed for practicality, but we still
-end up with a long string of decisions, which result in a string of car moves,and
-thus car states, that hopefully cause a goal to be scored.
+Rocket League's physics engine runs at 120fps. You could imagine that players
+make 120 decisions per second and provide appropriate controller inputs at each
+point. For practicality's sake, you could choose fewer/larger discrete steps.
+Regardless, we end up with a string of decisions and corresponding controller
+inputs, which result in a series of car states.
 
-This looks awfully like a tree. At each branching point, there are a set of
-different inputs that could be provided to the car. These inputs result in new
-car starts, and Each resulting car state is a starting point for further
-branching:
+This string of inputs and states looks awfully like a tree. The car can make
+several different moves at each branching point. These moves result in new car
+states, and each resulting car state is a starting point for further branching:
 
     TODO car tree growing gif
 
-This tree of inputs reaches all possible states the car can possibly reach, and
-thus finding a solution can be thought of as just a tree search. Our desired
-end point is a car state that collides with the ball in such a way that the
-ball's post-collision velocity points at the goal. A path through the tree of
-inputs that reaches that state is our solution.
+The nodes of the tree are car states, and the edges between them are car
+inputs. This tree of inputs leads to all states that the car can reach, and so
+a tree search should find a path to a desirable state. Our desired endpoint is
+a car state that collides with the ball in such a way that the ball's
+post-collision velocity points at the goal. A path through the tree of inputs
+that reaches that state is our solution.
 
-Consider also that there are many solutions in this tree: there are many
-different paths through it that would result in a goal. Here are two different
-solutions for the same position, and there are many more:
+Note that there are many solutions in this tree since multiple paths can result
+in a goal. Here are two different solutions for the same position, and there
+are many more:
 
     TODO: solution1
 
     TODO: solution2
 
-What we'd like is the "optimal" solution, ie the solution which hits the ball
-as early as possible. In reality, there are situations in Rocket League where
-it makes more sense to slow down and get a different type of shot. But most of
-the time, the player who is fastest to the ball wins it. So we'll use the time to
-reach the ball as an evaluation function for optimality.
+We don't want any old solution; we want the "optimal" solution. I.e., the
+solution that hits the ball as early as possible. In reality, there are
+situations in Rocket League where it makes more sense to slow down and get
+a different type of shot. But most of the time, the player who is fastest to
+the ball wins it. So we'll use the time to reach the ball as an evaluation
+function for optimality.
 
 ## A\*
 

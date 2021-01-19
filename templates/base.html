@@ -10,12 +10,23 @@
 	<link rel="icon" type="image/png" sizes="16x16" href="/favicon/favicon-16x16.png">
 	<link rel="manifest" href="/site.webmanifest">
 
-  <title>Ehsan's Blog</title>
+  <title>Ehsanul</title>
+	<style>
+    * { box-sizing: border-box; }
+    body { font-family: sans-serif; color: #111; line-height: 1.6; }
+    p { font-size: 16px; }
+    .page { width: 720px; margin: 0 auto; position: relative; }
+    img, video { width: 100%; }
+    .source { text-align: center; font-size: 14px; color: #555; }
+    .source + img { margin-top: 15px; }
+    p + .source { margin-top: -15px; }
+    .source a { color: #555; }
+  </style>
   <!--link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.8.0/css/bulma.min.css"-->
 </head>
 
 <body>
-  <section class="section">
+  <section class="section page">
     <div class="container">
       {% block content %} {% endblock %}
     </div>

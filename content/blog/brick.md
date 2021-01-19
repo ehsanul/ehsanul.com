@@ -1,13 +1,8 @@
 +++
 title = "Making A Rocket League Bot"
 date = 2021-01-03
+path = "/making-a-rocket-league-bot"
 +++
-
-- Conclusion
-  - Expand to include aerials, more moves etc
-  - There is a lot left out like simulating the car and ball correctly (see
-    chip), handling aerials, etc
-  - Link to brick
 
 For the last few years, I've been obsessed with Rocket League, a physics-based
 game where rocket-powered cars play soccer. Being physics-based means that this
@@ -16,11 +11,17 @@ world: there is no such thing as auto-aim.
 
 The interaction between players and the game physics allows for amazing plays:
 
-    TODO: gif
+<video muted autoplay loop src="/images/brick/amazing.mp4"></video>
+
+<div class="source">An amazing shot (<a
+href="https://www.reddit.com/r/RocketLeague/comments/klhyu3/you_wont_see_this_happening_often_in_grand/">source</a>)</div>
 
 Or positively terrible plays, if you're more like the average player:
 
-    TODO: gif
+<video muted autoplay loop src="/images/brick/average.mp4"></video>
+
+<div class="source">An average game (<a
+href="https://www.reddit.com/r/RocketLeague/comments/jqemvn/just_diamond_things/">source</a>)</div>
 
 Given the difficulty of the game, the built-in AI isn't very good. Most
 players can surpass it within a few weeks of playing and must turn to online
@@ -35,10 +36,10 @@ interesting side project!
 
 Playing Rocket League well is a high bar. It involves predicting the motion of
 the ball and other players, planning your moves and executing them,
-positioning, strategizing, and more. Rather than attempt to meet that high bar,
-for now, I'll settle for a much more modest achievement: scoring a goal. More
-specifically, I would like to build a bot that can hit the ball towards the
-net, regardless of the ball or car's starting state.
+positioning, strategizing, and more. For now, I'll settle for a much more
+modest achievement: scoring a goal. More specifically, I would like to build a
+bot that can hit the ball towards the net, regardless of the ball or car's
+starting state.
 
 Solving this for certain starting states does seem relatively trivial. For
 example, if the car is facing the ball and the ball is between the car and the
@@ -46,19 +47,22 @@ goal already, the car may just need to make a slight turn before driving
 straight at the ball.
 
 But solving this in the general case is more challenging. Consider this case,
-where the ball is soaring through the air while the car is initially facing the
-wrong way:
+where the ball is soaring through the air while the car is on the ground near a
+wall:
 
-    TODO: gif
+<video muted autoplay loop src="/images/brick/move-sequence.mp4"></video>
+
+<div class="source">Off-the-wall aerial preflip shot</div>
 
 Scoring in this situation requires a complex string of maneuvers:
 
-1. Left turn on the ground
-2. Driving straight up the wall
-3. Jumping off at the appropriate moment
-4. Flipping for additional horizontal velocity in the air
-5. Boosting for more height and speed while angling the car for correct
-   positioning
+1. Turning to the right while on the ground
+2. Transitioning up the curve of the wall
+3. Driving straight on the wall at an angle
+4. Jumping off at the appropriate moment
+5. Boosting for height and speed
+5. Flipping diagonally for additional horizontal velocity in the air
+6. Boosting while angling the car to fine-tune the hit
 
 Other situations require their own unique set of moves to hit the ball in the
 desired direction efficiently. But given an arbitrary scenario, where the car
@@ -69,7 +73,7 @@ out the right set of moves that will accomplish our goal?
 
 Rocket League's physics engine runs at 120fps. You could imagine that players
 make 120 decisions per second and provide appropriate controller inputs at each
-point. For practicality's sake, you could choose fewer/larger discrete steps.
+point. For practicality's sake, you might choose fewer/larger discrete steps.
 Regardless, we end up with a string of decisions and corresponding controller
 inputs, which result in a series of car states.
 
@@ -77,7 +81,13 @@ This string of inputs and states looks awfully like a tree. The car can make
 several different moves at each branching point. These moves result in new car
 states, and each resulting car state is a starting point for further branching:
 
-    TODO car tree growing gif
+<video muted autoplay loop src="/images/brick/tree.mp4"></video>
+
+<div class="source">Random walks along the tree, choosing between left, right and straight</div>
+
+<video muted autoplay loop src="/images/brick/tree2.mp4"></video>
+
+<div class="source">Visualization of the first few levels of the tree</div>
 
 The nodes of the tree are car states, and the edges between them are car
 inputs. This tree of inputs leads to all states that the car can reach, and so
@@ -90,9 +100,13 @@ Note that there are many solutions in this tree since multiple paths can result
 in a goal. Here are two different solutions for the same position, and there
 are many more:
 
-    TODO: solution1
+<img src="/images/brick/sane-path.png"/>
 
-    TODO: solution2
+<div class="source">A drivable path from the car to the ball</div>
+
+<img src="/images/brick/no-right-turn-path.png"/>
+ 
+<div class="source">Same car and ball position, but this path has no right turns!</div>
 
 We don't want any old solution; we want the "optimal" solution. I.e., the
 solution that hits the ball as early as possible. In reality, there are
@@ -117,7 +131,10 @@ tree. We'll later discuss what heuristic would be appropriate for Rocket
 League. Suffice it to say that a well-designed heuristic can significantly
 reduce the runtime of the search.
 
-    https://www.youtube.com/watch?v=g024lzsknDo
+<video muted autoplay loop src="/images/brick/a-star-vs-djikstra.mp4"></video>
+
+<div class="source">A* on the left vs Djikstra's algorithm on the right (<a
+href="https://www.youtube.com/watch?v=g024lzsknDo">source</a>)</div>
 
 ## Hybrid A\*
 
@@ -170,8 +187,6 @@ With inputs at 120fps, that leads to several hundred levels in the tree. Using
 larger simulation steps between tree nodes can substantially reduce the number
 of car states calculated: another tweakable trade-off between performance and
 optimality.
-
-    TODO: gif of search space using different time discretization
 
 Even more important than the number of levels in the tree is the branching
 factor. Rocket League uses floats for the throttle, steering, roll, pitch, and
@@ -228,22 +243,29 @@ I've run these tests with a branching factor of six, which allows for basic
 ground driving (left, right, and forward) with or without boost.
 
 In case 1, the car is facing forwards towards the ball and goal but offset in
-the x-axis. We simulated TODO states in TODO seconds.
+the x-axis. We simulated between 50 to and 30,000 states per search typically,
+in 1ms to 10.0ms. Sometimes we have a hard time finding a solution and have a
+huge spike in the number of states expanded.
 
-    TODO: distance1 - forward offset
+<video muted autoplay loop src="/images/brick/case1-euclidean.mp4"></video>
+
+<div class="source">Case 1, Euclidean: ~10k states, runtime 5ms with large spikes</div>
 
 Case 2 has the car facing away from the goal and in between the ball and goal.
 It has to go a long way around, but our distance-based heuristic is not smart
 enough to understand this and wastes a lot of time exploring the wrong side of
-the ball. This results in (TODO) states simulated in TODO seconds.
+the ball. This results in about 2 million states simulated in about 4 seconds.
 
-    TODO: distance2 - backwards offset
+<img src="/images/brick/case2-euclidean.png"/>
+
+<div class="source">Case 2, Euclidean: ~2 million states, runtime 4s</div>
 
 Case 3 is another challenging one, requiring a long roundabout turn to shoot
-the ball into the goal, and ends up simulating TODO states, taking TODO
-seconds.
+the ball into the goal, and ends up simulating ~7m states, taking 11 seconds.
 
-    TODO: distance3 - beside ball, turn requires large circle turn
+<img src="/images/brick/case3-euclidean.png"/>
+
+<div class="source">Case 2, Euclidean: ~7 million states, runtime 11s</div>
 
 This abysmal performance clearly shows that a simple distance-based heuristic
 is not sufficient, especially in more challenging cases. The main reason for
@@ -283,7 +305,9 @@ You see, I now had a generated data set with car starting states in a grid
 across the entire field. I had different car orientations and velocities as
 well, plus the actual costs for each state. It looked something like this:
 
-    TODO: csv sample
+     cost,    x,    y, z, vx, vy, vz, etc
+    1.325, 1000, 1000, 0,  0,  0,  0, etc
+      1.2,-1000,-1000, 0,  0,  0,  0, etc
 
 I realized I could directly use this data instead of trying to compress it into
 a network! I just had to interpolate it based on how close my actual car state
@@ -297,44 +321,62 @@ a given one, e.g., one from the game. An average of these nearby states' costs,
 weighted by how close they are to the given state, can be used as a very
 accurate heuristic.
 
-kNN heuristic, case 1: TODO states, TODOs runtime
+<video muted autoplay loop src="/images/brick/case1-knn.mp4"></video>
 
-    TODO case1 knn
+<div class="source">Case 1, kNN: ~1k states, runtime ~40ms</div>
 
-kNN heuristic, case 2: TODO states, TODOs runtime
+<img src="/images/brick/case2-knn.png"/>
 
-    TODO case2 knn
+<div class="source">Case 2, kNN: ~500k states, runtime ~28s</div>
 
-kNN heuristic, case 3: TODO states, TODOs runtime
+<img src="/images/brick/case3-knn.png"/>
 
-    TODO case3 knn
+<div class="source">Case 3, kNN: ~150k states, runtime ~5s</div>
 
-That's a TODOx improvement! Note that this averaging of actual costs will not
-result in an admissible heuristic. But admissibility is only a hard requirement
-for optimality, which we have already given up through all the discretization
-we did earlier in the process. If we're willing to give up more optimality for
-performance, we can even scale the heuristic function's cost. With a very
-accurate heuristic function such as the one we have, we still get a good
-result.
+It seems the overhead of the kNN is outpacing the advantage of visiting fewer
+nodes in these cases.
 
-Here's the result of a TODO scaling factor on the kNN heuristic:
+Note that this averaging of actual costs will not result in an admissible
+heuristic. But admissibility is only a hard requirement for optimality, which
+we have already given up through all the discretization we did earlier in the
+process. If we're willing to give up more optimality for performance, we can
+even scale the heuristic function's cost. With a very accurate heuristic
+function such as the one we have, we still get a good result.
 
-Scaled kNN heuristic, case 1: TODO states, TODOs runtime
+Here's the result of a 10x scaling factor on the kNN heuristic:
 
-    TODO case1 knn scaling
+<video muted autoplay loop src="/images/brick/case1-scaled-knn.mp4"></video>
 
-Scaled kNN heuristic, case 2: TODO states, TODOs runtime
+<div class="source">Case 1, scaled kNN: ~1.5k states, runtime ~60ms</div>
 
-    TODO case2 knn scaling
+<video muted autoplay loop src="/images/brick/case2-scaled-knn.mp4"></video>
 
-Scaled kNN heuristic, case 3: TODO states, TODOs runtime
+<div class="source">Case 2, scaled kNN: ~500 states, runtime ~30ms</div>
 
-    TODO case3 knn scaling
+<video muted autoplay loop src="/images/brick/case3-scaled-knn.mp4"></video>
 
-While we find some less optimal paths this way, the runtime is much better and
-may be worth it. Also note that the solutions are all very similar to the
-globally optimal solution. That indicates that there should be a way to create
-a set of optimization passes that starts with the crude solution from a scaled
-heuristic and brings it closer to an optimal one, smoothing over some of
-the discretizations made while doing so. That's a future enhancement I'm
+<div class="source">Case 3, scaled kNN: ~2k states, runtime ~80ms</div>
+
+While some paths found this way are less than optimal, the runtime is much
+better. Also note that the solutions are all very similar to the globally
+optimal solution. That indicates that there should be a way to create a set of
+optimization passes that starts with the crude solution from a scaled heuristic
+and brings it closer to an optimal one, smoothing over some of the
+discretizations made while doing so. That's a future enhancement I'm
 interesting in pursuing.
+
+## What's Next
+
+I've left out many details in this article required to make the Hybrid A\*
+algorithm work for a Rocket League bot. I'd love to dive deeper into that. The
+visualizations here were all made using
+[brick](https://github.com/ehsanul/brick), my implementation of the ideas I
+explained in this article.
+
+But brick is still an awful player. Errors can build up when applying a found
+plan to the actual game, which is a challenge to counteract. I have got a lot
+more I want to implement as well. For instance, I have not delved into driving
+on the wall and aerials. I'm also grappling with accurately simulating the
+drifting in Rocket League efficiently.
+
+But all that will have to wait for next time!

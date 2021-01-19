@@ -1,27 +1,8 @@
 +++
-title = "Making Rocket League Bot"
+title = "Making A Rocket League Bot"
 date = 2021-01-03
 +++
 
-- Introduce rocket league and RLBot
-  - Physics-based, no auto-aim of any kind
-  - Video/gif of good play and bad play
-- Motivate the use of path planning / search
-  - Describe series of moves required
-- A\* Algorithm
-- Hybrid A\* Algorithm
-  - Grid needs to be dynamic :O
-- Performance
-  - Discretization
-  - Heuristic choice
-    - nonholonomic
-    - Curves don't work as car is very dynamic, velocity curve, turning radius is
-      dependent on the velocity, and velocity changes. Could not find a close form
-      solution for this, we just have to simulate each step.
-    - distance
-    - machine learning
-    - knn was better
-  - Loosening the search process
 - Conclusion
   - Expand to include aerials, more moves etc
   - There is a lot left out like simulating the car and ball correctly (see
@@ -63,8 +44,6 @@ Solving this for certain starting states does seem relatively trivial. For
 example, if the car is facing the ball and the ball is between the car and the
 goal already, the car may just need to make a slight turn before driving
 straight at the ball.
-
-    TODO: gif ???
 
 But solving this in the general case is more challenging. Consider this case,
 where the ball is soaring through the air while the car is initially facing the
@@ -124,138 +103,137 @@ function for optimality.
 
 ## A\*
 
-We can use a path search algorithm, like A\*, to find an optimal path through
-the input tree. A\* is an extension of Djikstra's algorithm for shortest path
-search. Djikstra's algorithm relies only on the cost between nodes of the tree.
-For our purposes the cost of a single edge will be the amount of time we spend
-on a single inut step. The cost of the entire path will be simply the sum of
-the cost along the edges, which corresponds to the total time it takes to hit
-the ball.
+We can use a path search algorithm, like Djikstra's algorithm or A\*, to find
+an optimal path through the input tree. Djikstra's algorithm relies only on the
+cost between nodes of the tree. For our purposes, the cost of a single edge
+will be the amount of time we spend on a single input step. The entire path's
+cost is the sum of the costs along the edges, which corresponds to the total
+time it takes to hit the ball.
 
-The A\* search algorithm can achieve higher performance than Djikstra's
-algorithm by making use of a heuristic to guide the search. We'll later discuss
-what a good heuristic would be for Rocket League. Suffice it to say, a good
-heuristic can greatly reduce the runtime of the search algorithm.
+A\* is an extension of Djikstra's algorithm for shortest path search and can
+achieve higher performance than Djikstra's algorithm by using a heuristic to
+guide the search. This heuristic is an estimate of cost given a node in the
+tree. We'll later discuss what heuristic would be appropriate for Rocket
+League. Suffice it to say that a well-designed heuristic can significantly
+reduce the runtime of the search.
 
-    TODO?: find A* search animation
+    https://www.youtube.com/watch?v=g024lzsknDo
 
 ## Hybrid A\*
 
 But there are some challenges to applying A\* to this particular search
-problem. If you consider using A\* in it's usual form, over a graph of
-interconnected nodes, the states are generally very specific points. This is
-helpful when there are multiple routes to the same node, as the cost for the
-different paths may be directly compared, and the number of calculations
-required are limited. In contrast, the state of a car in Rocket League is a set
-of floating point numbers, comprising its 3-dimensional position, velocity,
-angular velicity and rotation.
+problem. It's most common to use A\* to search paths in graphs of highly
+interconnected nodes, e.g., on a 2d grid. When multiple routes reach the same
+node, the algorithm can directly compare different paths. The nodes are
+equivalent regardless of the way we get there.
 
-This is an incredibly large state space. It's possible to reach
-a very similar car states via different paths. But the states will still be
-slightly different, which means that the cost of each new state will be
-unknown and treated as if it has never been seen before. Introducing some type
-of rounding or discretization to the values when simulating car state could
-solve this, but at the expense of unacceptable simulation errors. Thus it is
-essential to maintain the full car state at each point in the tree.
+In contrast, the state of a car in Rocket League is a set of floating-point
+numbers, comprising its 3-dimensional position, velocity, angular velocity, and
+rotation. Two different car states can be right beside each other in state
+space yet far apart in the graph. And though it's possible to reach similar car
+states via divergent paths, those states will still be slightly different. This
+difference means that each new state's cost will be unknown and treated as if
+never seen before. Introducing rounding or discretization to the values when
+simulating car state would solve this, but at the expense of unacceptable
+simulation errors.
 
-This is where the "Hybrid" A\* algorithm comes in. This algorithm was
+That's where the "Hybrid" A\* algorithm comes in. This algorithm was
 introduced in the
-(paper)[https://ai.stanford.edu/~ddolgov/papers/dolgov_gpp_stair08.pdf]
-entitled "Practical Search Techniques in Path Planning for Autonomous Driving"
-by Sebastrian Thrun et al, and was used to achieve a 2nd place ranking in the
-2007 DARPA Urban Challenge for self-driving cars.
+[paper](https://ai.stanford.edu/~ddolgov/papers/dolgov_gpp_stair08.pdf) by
+Sebastian Thrun et al. entitled "Practical Search Techniques in Path Planning
+for Autonomous Driving." The technique helped Standford Racing Team's robot,
+Junior,  achieve a 2nd place ranking in the 2007 DARPA Urban Challenge for
+self-driving cars.
 
-The core idea behind the algorithm is to discretize the nodes of the tree, but
-also maintain the full kinematic state of the car at each node. Thus the state
-space being searched in the tree is greatly reduced: when other paths are found
-to a state very similar to a state found before, we compare those paths
-directly and only keep the one with the lowest estimated total cost. Yet we
-maintain the full car state at the node for the winning path, and can thus
-maintain an accurate simulation.
+The core idea behind the algorithm is to discretize the graph's nodes while also
+saving the full kinematic state of the car at each node. The discretization
+makes graph search feasible: when a new path reaches a state similar to
+a state found earlier via a different path, we can directly compare them.
+Keeping the one with the lowest estimated total cost significantly prunes the
+graph of similar nodes. Yet, we keep the full car state at the node for
+the winning path and thus maintain an accurate simulation.
 
-## Discretization / State space
+## Discretization of the State and Input Space
 
-The discretization applied at each node in the Hybrid A\* algorithm makes path
-search more feasible in this case, but it does come at a cost: optimality. It
-is possible that a node discarded as a duplicate leads to the most optimal
-path.  However, it is likely that the path will still be near the globally
-optimal path, as each discarded node is very close to nodes we do keep in the
-path. We can tune this discretization according to the bot's performance needs,
-by tweaking the bucket sizes to be as small as possible while still meeting the
-performance goal.
+While the discretization applied at each node in the Hybrid A\* algorithm gets
+us closer to feasibility, it does come at a cost: optimality. A pruned node
+could lead to the most optimal path. However, the path the algorithm finds will
+still be near the globally optimal path, as each discarded node is very close
+to nodes we do keep. We can tune the discretization according to the bot's
+performance needs by tweaking the bucket sizes to be as small as possible while
+still meeting the performance goal.
 
-Despite the reduction in explored state space, There are further points of
-discretization required to make path search feasible, since the state space is
-still very large. Most paths take a few seconds, and with inputs at 120fps, that leads to
-several hundred levels in the tree. If we simply use larger simulation steps in
-between nodes of our tree, that will greately reduce the state space and number
-of car states that must be calculated. This is yet nother tweakable trade-off
-between performance and optimality.
+Despite the relative reduction in explored state space, we need further
+discretization to make path search feasible since the state space is still
+enormous. Most paths take several seconds for a Rocket League car to traverse.
+With inputs at 120fps, that leads to several hundred levels in the tree. Using
+larger simulation steps between tree nodes can substantially reduce the number
+of car states calculated: another tweakable trade-off between performance and
+optimality.
 
     TODO: gif of search space using different time discretization
 
 Even more important than the number of levels in the tree is the branching
-factor. Rocket League uses floats for the throttle, steering, roll, pitch and
-yaw inputs in for example, and some sort of discretization must be applied to
-that space of allowed inputs. Simplying this to driving on the ground, the car
-could still boost, reverse or idle. If we omit all those possibilities and only
-consider cars throttling at 100%, and going fully straight, fully left or fully
-right, we finally reach a branching factor of 3. Adding boosting, a boolean
-input allowing higher acceration, results in a branching factor of 6, and
-drifiting brings it to a branching factor of 12.
+factor. Rocket League uses floats for the throttle, steering, roll, pitch, and
+yaw inputs. We will have to discretize this large space of allowed inputs. If
+we only allow driving on the ground without drifting, the car could still
+boost, reverse, or idle. Suppose we omit all those possibilities and only
+consider cars throttling at 100% and going completely straight, left, or right.
+In that case, we finally reach a branching factor of 3. Adding boosting,
+a boolean input allowing for higher acceleration, results in a branching factor
+of 6. Drifting (another boolean) on top of that brings it to a branching factor
+of 12.
 
-Those 12 different inputs for ground driving are sufficient for most situations
-in Rocket League where we are trying to hit the ball. It's still quite a high
-branching factor, and we can't really reduce it further without giving up far
-too much in optimality: drifting and boosting are absolutely essential to
-efficiently moving in Rocket Leauge. So. we'll be forced to reduce the number
-of levels instead to accommodate this. A very good heuristic function can also
-greatly help here!
+Those 12 different inputs are sufficient for most ground driving in Rocket
+League. While that's still a high branching factor, we can't reduce it further
+without giving up far too much in optimality: drifting and boosting are
+essential to efficiently moving in Rocket League. So we'll be forced to reduce
+the number of levels instead to accommodate this. The right heuristic function
+will also really help here!
 
 ## Heuristic function
 
-The heuristic function can be make or break for the A\* algorithm, hybrid or
+The heuristic function can make or break the A\* algorithm, hybrid or
 otherwise. While it's always possible to find examples of graphs where even
 a perfect heuristic gets the same performance as with Djikstra's algorithm, for
-typical graphs a good heuristic can improve performance by multiple orders of
-magnitude, by expanding far fewer nodes of the tree.
+typical graphs, an appropriate heuristic can improve performance by multiple
+orders of magnitude by expanding far fewer nodes of the graph.
 
-The only requirement for a heuristic for A\* search is that the it be
-(admissibl)[https://en.wikipedia.org/wiki/Admissible_heuristic]. That means
-it can undestimate the cost, but should never overetimate it. However, the
+The only requirement for a heuristic for A\* search is that it be
+[admissible](https://en.wikipedia.org/wiki/Admissible_heuristic). That means it
+can underestimate the cost but should never overestimate it. However, the
 closer we can get to the actual cost, the better the heuristic is at
-eliminating tree expansions. So our target heuristic is one which gives an
-answer that is as close to the actual cost as possible, but not over.
+eliminating graph expansions. So our target heuristic gives an answer that is as
+close to the actual cost as possible but no higher.
 
-Designing a good heuristic function for Rocket League is actually quite
-challenging. One reason for this is that cars, in Rocket League and in general,
-have (nonholonomic)[https://en.wikipedia.org/wiki/Nonholonomic_system]
-constraints on their movement. This is just a fancy way of
-saying that steering a car to make it move left or right is not independent of
-its forwards or backwards movement. A car with omnidirectional wheels (ie
-wheels that can go directly sideways, like the (Mecanum
-wheel)[https://en.wikipedia.org/wiki/Mecanum_wheel]) would be holonomic in
-constrast.
+Designing a good heuristic function for Rocket League is somewhat challenging.
+One reason for this is that cars, in Rocket League and in general, have
+[nonholonomic](https://en.wikipedia.org/wiki/Nonholonomic_system) constraints
+on their movement. That is just a fancy way of saying that steering a car to
+make it move left or right is not independent of its forward or backward
+movement. A car with [omnidirectional
+wheels](https://en.wikipedia.org/wiki/Mecanum_wheel) would be holonomic in
+contrast.
 
-Holonomic constraints are much more commonly used for path search, and thus
-often a simple distance metric can be used with some success. That is not the
-case with nonholonomic systems, but let's go ahead and use euclidean distance
-as a heuristic and see how it does.
+In path search for holonomic systems, a simple distance-based heuristic can
+usually be used with success. That is not the case with nonholonomic systems
+since nearby points in state space may be far apart in graph space. But let's
+go ahead and use Euclidean distance as a heuristic and see how it does.
 
-Here is a visualization of all node expansions for a few different cases which
-we will use as benchmark cases. The blue cuboid is a the car, and the sphere is
-the ball. Each short while line is a state that was simulated while conducting
-the hybrid A\* path search, and the blue line is the final solution. Note that
-these tests have been done with a branching factor of six, which allows for basic
-ground driving (left, right, forward) with optional boost.
+Here is a visualization of all node expansions for a few different cases, which
+we will use as benchmarks. The blue cuboid is the car, and the sphere is the
+ball. Each short white line is a state that the Hybrid A\* path search
+simulated, and the solid line from the car to the ball is the final solution.
+I've run these tests with a branching factor of six, which allows for basic
+ground driving (left, right, and forward) with or without boost.
 
-With case 1, the car is facing forwards towards ball and goal, but offset in the x-axis.
-We find (TODO) states have been simulated in TODO seconds.
+In case 1, the car is facing forwards towards the ball and goal but offset in
+the x-axis. We simulated TODO states in TODO seconds.
 
     TODO: distance1 - forward offset
 
-Case 2 has the car facing away from the goal, and in between the ball and goal.
-It has to go the long way around, but our distance-based heuristic is not smart
+Case 2 has the car facing away from the goal and in between the ball and goal.
+It has to go a long way around, but our distance-based heuristic is not smart
 enough to understand this and wastes a lot of time exploring the wrong side of
 the ball. This results in (TODO) states simulated in TODO seconds.
 
@@ -267,44 +245,43 @@ seconds.
 
     TODO: distance3 - beside ball, turn requires large circle turn
 
-This abysmal performance show clearly that a simple distance-based heuristic is
-not sufficient, especially in more challenging cases. One reason for that is
-that a car cannot go directly sideways. This results in the heuristic thinking
-we are very close to reaching our  goal, when in fact the car cannot turn so
-tightly.
+This abysmal performance clearly shows that a simple distance-based heuristic
+is not sufficient, especially in more challenging cases. The main reason for
+that is that a car cannot go directly sideways. So the distance heuristic
+sometimes thinks we are very close to reaching our goal, even though the car
+cannot turn so tightly.
 
-Some have used (Reeds-Shepp
-curves)[https://gieseanw.wordpress.com/2012/11/15/reeds-shepp-cars/] in order
-to get a better heuristic. This is a fast way to find a lower bound for
-distance.
+Some have used [Reeds-Shepp
+curves](https://gieseanw.wordpress.com/2012/11/15/reeds-shepp-cars/) to get
+a better heuristic. This is a fast way to find a lower bound for distance.
 
-While this is likely to work better than distance for ground driving, Rocket
-League's car driving physics are more complicated than the simple models used
-for Reeds-Shepp curves. For example, it is possible to drift, at the expense of
-velocity, and the car's turning radius in Rocket League is dependent on its
-velocity. Furthermore, turning reduces a cars velocity.
+While this is likely to work better than distance, Rocket League's car driving
+physics are more complicated than the simple models used for Reeds-Shepp
+curves. For example, it is possible to drift at the expense of velocity, and
+the car's turning radius in Rocket League is dependent on its velocity.
+Furthermore, turning reduces a car's velocity.
 
 More importantly, these curves only cover basic ground driving. It will not
 handle jumping, aerials (flying through the air with boost), transitioning from
-the ground to the wall, and various other moves we may want to accomodate in
+the ground to the wall, and various other moves we may want to accommodate in
 the general case.
 
-I briefly attempted using a simple 2-layer neural network as a heuristic
+I briefly attempted to use a simple 2-layer neural network as a heuristic
 function. Neural networks are known as universal function simulators, so it
-seemed possible to make it work. The training and test sets were generated
-using optimal paths found by the algorithm with the euclidean distance
-heuristic. Thus, for each found path, we know the start state of the car and
-what the actual cost is.
+seemed like they could approximate the heuristic I wanted. I generated training
+and test data sets using optimal paths found by the algorithm with the
+euclidean distance heuristic. We know the start state of the car for each found
+path and the actual cost for that state: the cost of that path.
 
-Unfortunately, the results of this were mixed and I have lost them now. I'm
-sure there is a way to make it work, eg I probably should have used polar
+Unfortunately, the results of this were mixed, and I've lost them now. I'm sure
+there is a way to make it work, e.g., I probably should have used polar
 coordinates instead of euclidean ones as inputs to the neural network. But
-I moved on: while gathering data for the neural network, I had better and much
-simpler idea.
+I moved on: while gathering data for the neural network, I had a better and
+much simpler idea.
 
 You see, I now had a generated data set with car starting states in a grid
-across the entire field, and with different car orientations and velocities as
-well. And actual costs for each state. It looked something like this:
+across the entire field. I had different car orientations and velocities as
+well, plus the actual costs for each state. It looked something like this:
 
     TODO: csv sample
 
@@ -312,11 +289,13 @@ I realized I could directly use this data instead of trying to compress it into
 a network! I just had to interpolate it based on how close my actual car state
 is to one of the states with a pre-computed cost.
 
-This is a classic machine learning technique known as the [k-nearest neighbors]
-algorithm. A kd-tree is used to efficiently find car states in the data set
-that are similar to a given one, eg one from the game. Then an average of the
-costs of nearby states, weight by how close they are to the given state, can be
-used as a very accurate cost.
+Of course, I didn't invent that. It's a classic machine learning technique
+known as the [k-nearest
+neighbors](https://en.wikipedia.org/wiki/K-nearest_neighbors_algorithm)
+algorithm. A k-d tree can efficiently find states in the data set similar to
+a given one, e.g., one from the game. An average of these nearby states' costs,
+weighted by how close they are to the given state, can be used as a very
+accurate heuristic.
 
 kNN heuristic, case 1: TODO states, TODOs runtime
 
@@ -331,12 +310,12 @@ kNN heuristic, case 3: TODO states, TODOs runtime
     TODO case3 knn
 
 That's a TODOx improvement! Note that this averaging of actual costs will not
-result in an admissible heuristic. But admissibility is really only a hard
-requirement for optimality, which we have already given up through all the
-discretization we did earlier in the process. If we're willing to give up more
-optimality for performance, we can even scale the cost from the heuristic
-function, which is clearly inadmissible! With a very accurate heuristic
-function such as the one we have, we still get a reasonable result.
+result in an admissible heuristic. But admissibility is only a hard requirement
+for optimality, which we have already given up through all the discretization
+we did earlier in the process. If we're willing to give up more optimality for
+performance, we can even scale the heuristic function's cost. With a very
+accurate heuristic function such as the one we have, we still get a good
+result.
 
 Here's the result of a TODO scaling factor on the kNN heuristic:
 

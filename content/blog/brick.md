@@ -255,11 +255,11 @@ Some have used [Reeds-Shepp
 curves](https://gieseanw.wordpress.com/2012/11/15/reeds-shepp-cars/) to get
 a better heuristic. This is a fast way to find a lower bound for distance.
 
-While this is likely to work better than distance, Rocket League's car driving
-physics are more complicated than the simple models used for Reeds-Shepp
-curves. For example, it is possible to drift at the expense of velocity, and
-the car's turning radius in Rocket League is dependent on its velocity.
-Furthermore, turning reduces a car's velocity.
+While this is likely to work better than Euclidean distance, Rocket League's
+car driving physics are more complicated than the simple models used for
+Reeds-Shepp curves. For example, it is possible to drift at the expense of
+velocity, and the car's turning radius in Rocket League is dependent on its
+velocity.  Furthermore, turning reduces a car's velocity.
 
 More importantly, these curves only cover basic ground driving. It will not
 handle jumping, aerials (flying through the air with boost), transitioning from
@@ -270,12 +270,12 @@ I briefly attempted to use a simple 2-layer neural network as a heuristic
 function. Neural networks are known as universal function simulators, so it
 seemed like they could approximate the heuristic I wanted. I generated training
 and test data sets using optimal paths found by the algorithm with the
-euclidean distance heuristic. We know the start state of the car for each found
+Euclidean distance heuristic. We know the start state of the car for each found
 path and the actual cost for that state: the cost of that path.
 
 Unfortunately, the results of this were mixed, and I've lost them now. I'm sure
 there is a way to make it work, e.g., I probably should have used polar
-coordinates instead of euclidean ones as inputs to the neural network. But
+coordinates instead of Euclidean ones as inputs to the neural network. But
 I moved on: while gathering data for the neural network, I had a better and
 much simpler idea.
 

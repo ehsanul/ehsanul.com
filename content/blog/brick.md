@@ -333,8 +333,8 @@ accurate heuristic.
 
 <div class="source">Case 3, kNN: ~150k states, runtime ~5s</div>
 
-It seems the overhead of the kNN is outpacing the advantage of visiting fewer
-nodes in these cases.
+It seems that the overhead of the kNN algorithm outpaces the advantage of
+visiting fewer nodes in these cases.
 
 Note that this averaging of actual costs will not result in an admissible
 heuristic. But admissibility is only a hard requirement for optimality, which
@@ -373,10 +373,10 @@ visualizations here were all made using
 [brick](https://github.com/ehsanul/brick), my implementation of the ideas I
 explained in this article.
 
-But brick is still an awful player. Errors can build up when applying a found
-plan to the actual game, which is a challenge to counteract. I have got a lot
-more I want to implement as well. For instance, I have not delved into driving
-on the wall and aerials. I'm also grappling with accurately simulating the
-drifting in Rocket League efficiently.
+But brick still plays like, well, a brick. Errors can build up when applying
+a found plan to the actual game, which is a challenge to counteract. I have got
+a lot more I want to implement as well. For instance, I have not delved into
+driving on the wall and aerials. I'm also grappling with accurately simulating
+the drifting in Rocket League efficiently.
 
 But all that will have to wait for next time!
